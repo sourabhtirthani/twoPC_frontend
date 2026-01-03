@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ArrowLeft, CheckCircle2, Info } from "lucide-react";
 import { ethers } from "ethers";
 import toast from "react-hot-toast";
-import { PRESALE_ABI, PRESALE_ADDRESS, BACKEND_URL } from "../../lib/config";
+import { PRESALE_ABI, PRESALE_ADDRESS, BACKEND_URL, TOKEN_ADDRESS, TOKEN_ABI } from "../../lib/config";
 
 export default function BuyToken({ selected, onBack }: any) {
   const [tokenAmount, setTokenAmount] = useState<string>("");
@@ -64,7 +64,7 @@ export default function BuyToken({ selected, onBack }: any) {
 
   const balanceWei = await provider.getBalance(wallet);
   const valueWei = ethers.parseEther(bnbAmount.toString());
-
+  console.log({ balanceWei, valueWei });
   if (balanceWei < valueWei) {
     toast.error("Insufficient BNB balance");
     return null;
@@ -76,7 +76,7 @@ export default function BuyToken({ selected, onBack }: any) {
 
   /* ===================== BUY HANDLER ===================== */
 
- const handleBuy = async () => {
+const handleBuy = async () => {
   setLoading(true);
 
   try {
@@ -88,50 +88,127 @@ export default function BuyToken({ selected, onBack }: any) {
       setLoading(false);
       return;
     }
+    if (
+      selected.phaseIndex === undefined ||
+      Number.isNaN(Number(selected.phaseIndex))
+    ) {
+      toast.error("Invalid ICO phase");
+      return;
+    }
 
     const { signer, wallet, valueWei } = validated;
+
+    const phaseId = Number(selected.phaseIndex);
+    console.log("Buying tokens...",phaseId  , valueWei );
+
+    if (!Number.isInteger(phaseId)) {
+      toast.error("Invalid phase selected", { id: "buy" });
+      setLoading(false);
+      return;
+    }
 
     const presale = new ethers.Contract(
       PRESALE_ADDRESS,
       PRESALE_ABI,
       signer
     );
-
+     const token = new ethers.Contract(
+      TOKEN_ADDRESS,
+      TOKEN_ABI,
+      signer
+    );
     toast.loading("Confirm transaction in MetaMask", { id: "buy" });
-
-    const tx = await presale.buyWithBNB(selected.phaseIndex, {
-      value: valueWei,
-    });
+    console.log("Calling buyWithBNB...", phaseId, { valueWei });
+    const tx = await presale.buyWithBNB(
+      phaseId,
+      { value: valueWei }
+    );
 
     toast.loading("Waiting for blockchain confirmation...", { id: "buy" });
 
     const receipt = await tx.wait();
+    const levels: bigint[] = await token.getMLMLevels();
+    console.log("Transaction confirmed:", levels);
 
-    // ✅ BACKEND DB SYNC
-    await fetch(`${BACKEND_URL}/transaction/confirm`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const rewards = await resolveUplines(
         wallet,
-        txHash: receipt.hash,
-        phaseId: selected.phaseIndex,
-        tokens: Number(tokenAmount),
-        amountBNB: totalBNB,
-      }),
-    });
+        token,
+        levels,
+        (tokenAmount)
+      );
+      console.log("Resolved uplines:", rewards);
+      await fetch(`${BACKEND_URL}/ico/purchase-complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          buyer: wallet,
+          phaseId,
+          txHash: receipt.hash,
+          tokens: tokenAmount.toString(),
+          amount: totalBNB.toString(),
+          rewards, // 👈 MLM rewards array
+        }),
+      });
+
 
     toast.success("Token purchase successful 🎉", { id: "buy" });
     setTokenAmount("");
   } catch (err: any) {
     console.error(err);
     toast.error(
-      err?.shortMessage || err?.message || "Transaction failed",
+      err?.shortMessage ||
+      err?.reason ||
+      err?.message ||
+      "Transaction failed",
       { id: "buy" }
     );
   } finally {
     setLoading(false);
   }
 };
+
+async function resolveUplines(
+  buyer: string,
+  token: ethers.Contract,
+  levels: bigint[],
+  tokenAmount: string // ⬅️ user input like "1"
+) {
+  const rewards: {
+    wallet: string;
+    amount: string;
+    level: number;
+    percent: string;
+  }[] = [];
+
+  // ✅ Convert token amount to WEI ONCE
+
+  let current = buyer;
+
+  for (let i = 0; i < levels.length; i++) {
+    current = await token.referrer(current);
+
+    if (!current || current === ethers.ZeroAddress) break;
+
+    const percent = levels[i]; // e.g. 5 = 5%
+
+    // ✅ Correct MLM calculation
+    const rewardWei = (Number(tokenAmount) * Number(percent)) / (100);
+
+    if (rewardWei === (0)) continue; // safety
+
+    rewards.push({
+      wallet: current,
+      amount: (rewardWei).toString(), // STORE WEI
+      level: i + 1,
+      percent: percent.toString(),
+    });
+  }
+
+  return rewards;
+}
+
+
+
 
 
   /* ===================== UI ===================== */

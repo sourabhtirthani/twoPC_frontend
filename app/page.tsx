@@ -49,7 +49,7 @@ export default function Home() {
         }
       } else {
         // 📝 NEW USER → JOIN PAGE
-        router.push("/join");
+        setError("You are not registered.you can not join without referral.");
       }
 
     } catch (err: any) {

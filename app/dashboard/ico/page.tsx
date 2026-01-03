@@ -69,7 +69,10 @@ export default function IcoPage() {
             </div>
 
             <button
-              onClick={() => { setSelected(ico); setView("buy"); }}
+              onClick={() => {
+                setSelected({ ...ico, phaseIndex: i });
+                setView("buy");
+              }}
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#06B6D4] font-bold text-white shadow-lg shadow-purple-500/20 hover:opacity-90 transition-all"
             >
               Buy now

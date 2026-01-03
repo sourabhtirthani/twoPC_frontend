@@ -128,37 +128,6 @@ export default function CreateStage({ onBack }: any) {
     }
   };
 
-const InputField = ({
-  label,
-  type = "text",
-  name,
-}: {
-  label: string;
-  type?: string;
-  name: keyof typeof form;
-}) => (
-  <div className="flex flex-col gap-1.5">
-    <label className="text-sm font-medium text-slate-600">
-      {label}
-    </label>
-    <input
-      type={type}
-      value={form[name] ?? ""}
-      onChange={(e) => update(name, e.target.value)}
-      className="
-        border border-slate-200
-        rounded-md
-        px-3 py-2
-        text-sm
-        bg-white
-        text-slate-900
-        focus:border-blue-500
-        outline-none
-      "
-    />
-  </div>
-);
-
 
 
 
@@ -174,14 +143,19 @@ const InputField = ({
       </div>
 
       <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField label="Stage title" name="title" />
-        <InputField label="Total token issues" name="totalTokens" />
-        <InputField label="Token base price (BNB)" name="price" />
-        <InputField label="Min buy (BNB)" name="minBuy" />
-        <InputField label="Max buy (BNB)" name="maxBuy" />
-        <InputField label="Hard cap (BNB)" name="hardCap" />
-        <InputField label="Start date" type="datetime-local" name="start" />
-        <InputField label="End date" type="datetime-local" name="end" />
+        <InputField 
+  label="Stage title" 
+  name="title" 
+  form={form} 
+  update={update} 
+/>
+        <InputField label="Total token issues" name="totalTokens" form={form} update={update} />
+        <InputField label="Token base price (BNB)" name="price" form={form} update={update} />
+        <InputField label="Min buy (BNB)" name="minBuy" form={form} update={update} />
+        <InputField label="Max buy (BNB)" name="maxBuy" form={form} update={update} />
+        <InputField label="Hard cap (BNB)" name="hardCap" form={form} update={update} />
+        <InputField label="Start date" type="datetime-local" name="start"  form={form} update={update}/>
+        <InputField label="End date" type="datetime-local" name="end" form={form} update={update} />
 
         <div className="md:col-span-2 mt-4">
           <button
@@ -196,3 +170,29 @@ const InputField = ({
     </div>
   );
 }
+
+// MOVE THIS HERE (Outside the main function)
+
+const InputField = ({
+  label,
+  type = "text",
+  name,
+  form,    // Add this prop
+  update,  // Add this prop
+}: {
+  label: string;
+  type?: string;
+  name: any;
+  form: any;
+  update: any;
+}) => (
+  <div className="flex flex-col gap-1.5">
+    <label className="text-sm font-medium text-slate-600">{label}</label>
+    <input
+      type={type}
+      value={form[name] ?? ""}
+      onChange={(e) => update(name, e.target.value)}
+      className="border border-slate-200 rounded-md px-3 py-2 text-sm bg-white text-slate-900 focus:border-blue-500 outline-none"
+    />
+  </div>
+);

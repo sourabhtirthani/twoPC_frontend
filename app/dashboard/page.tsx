@@ -4,9 +4,32 @@ import { useState } from "react";
 import { Copy, PiggyBank, Hourglass, CreditCard, ExternalLink } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function DashboardHome() {
-  const [referralLink] = useState("https://2pccoin.com/register/metauser");
+import { ethers } from "ethers";
+import { useEffect } from "react";
 
+export default function DashboardHome() {
+const [wallet, setWallet] = useState("");
+const [referralLink, setReferralLink] = useState("");
+useEffect(() => {
+  async function loadWallet() {
+    if (!window.ethereum) return;
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const accounts = await provider.send("eth_accounts", []);
+
+    if (accounts.length === 0) return;
+
+    const address = accounts[0];
+    setWallet(address);
+
+    // build referral link
+    setReferralLink(
+      `${window.location.origin}/join?ref=${address}`
+    );
+  }
+
+  loadWallet();
+}, []);
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
     toast.success("Referral link copied!");
@@ -25,6 +48,8 @@ export default function DashboardHome() {
       </div>
     </div>
   );
+
+
 
   return (
     <div className="min-h-screen bg-[#020617] p-4 md:p-8 text-white space-y-8">
@@ -71,7 +96,7 @@ export default function DashboardHome() {
       {/* 3. Transaction/Auction Table Section */}
       <div className="bg-[#050B24] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
         <div className="p-5 border-b border-slate-800">
-          <h3 className="text-xl font-bold">Auction list</h3>
+          <h3 className="text-xl font-bold">Transaction list</h3>
         </div>
         
         <div className="overflow-x-auto">

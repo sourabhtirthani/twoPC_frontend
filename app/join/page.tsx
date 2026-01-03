@@ -3,6 +3,20 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { useRouter, useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
+import { TOKEN_ABI, TOKEN_ADDRESS } from "../lib/config";
+
+const BSC_TESTNET = {
+  chainId: "0x61",
+  chainName: "BSC Testnet",
+  rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545"],
+  nativeCurrency: {
+    name: "BNB",
+    symbol: "BNB",
+    decimals: 18,
+  },
+  blockExplorerUrls: ["https://testnet.bscscan.com"],
+};
 
 export default function JoinPage() {
   const router = useRouter();
@@ -11,9 +25,8 @@ export default function JoinPage() {
   const [refAddress, setRefAddress] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  // Get ref from URL
+  /* 🔗 Get ref from URL */
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref && ethers.isAddress(ref)) {
@@ -21,33 +34,87 @@ export default function JoinPage() {
     }
   }, [searchParams]);
 
+  /* 🔐 Ensure BSC Testnet */
+  async function ensureBsc() {
+    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    if (chainId === BSC_TESTNET.chainId) return;
+
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: BSC_TESTNET.chainId }],
+      });
+    } catch (err: any) {
+      if (err.code === 4902) {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [BSC_TESTNET],
+        });
+      } else {
+        throw err;
+      }
+    }
+  }
+
   async function connectAndRegister() {
     try {
-      setError("");
-
       if (!window.ethereum) {
-        setError("MetaMask not installed");
+        toast.error("MetaMask not installed");
         return;
       }
 
       if (!name.trim()) {
-        setError("Please enter your name");
+        toast.error("Please enter your name");
         return;
       }
 
       if (!refAddress || !ethers.isAddress(refAddress)) {
-        setError("Invalid referral address");
+        toast.error("Invalid referral address");
         return;
       }
 
       setLoading(true);
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const accounts = await provider.send("eth_requestAccounts", []);
-      const wallet = accounts[0];
+      /* 🔗 Chain check */
+      await ensureBsc();
 
-      // Backend register
-      const res = await fetch("http://localhost:5000/user/register", {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const wallet = await signer.getAddress();
+
+      /* 💰 Balance check */
+      const balance = await provider.getBalance(wallet);
+      if (balance < ethers.parseEther("0.001")) {
+        toast.error("Insufficient BNB balance");
+        setLoading(false);
+        return;
+      }
+
+      /* 🔎 Contract */
+      const token = new ethers.Contract(
+        TOKEN_ADDRESS,
+        TOKEN_ABI,
+        signer
+      );
+
+      /* ❌ Already registered check */
+      const existingRef = await token.referrer(wallet);
+      if (existingRef !== ethers.ZeroAddress) {
+        toast.success("Already registered");
+        router.push("/dashboard");
+        return;
+      }
+
+      toast.loading("Confirm transaction in MetaMask...", { id: "join" });
+
+      /* 🚀 Blockchain call */
+      const tx = await token.registerReferrer(refAddress);
+      await tx.wait();
+
+      toast.success("Joined successfully!", { id: "join" });
+
+      /* 💾 Backend register */
+      await fetch("http://localhost:5000/user/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -57,14 +124,15 @@ export default function JoinPage() {
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("Registration failed");
-      }
-
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Something went wrong");
+      toast.error(
+        err?.shortMessage ||
+        err?.message ||
+        "Transaction failed",
+        { id: "join" }
+      );
     } finally {
       setLoading(false);
     }
@@ -79,7 +147,7 @@ export default function JoinPage() {
           placeholder="Your Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 rounded bg-gray-700"
+          className="w-full px-3 py-2 rounded bg-gray-700 outline-none"
         />
 
         <input
@@ -95,8 +163,6 @@ export default function JoinPage() {
         >
           {loading ? "Processing..." : "Connect & Join"}
         </button>
-
-        {error && <p className="text-red-400 text-sm">{error}</p>}
       </div>
     </div>
   );
