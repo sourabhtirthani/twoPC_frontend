@@ -93,7 +93,7 @@ async function fetchBalance() {
       if (!stakeAmount || Number(stakeAmount) <= 0) return toast.error("Enter a valid amount");
 
       const amountWei = ethers.parseUnits(stakeAmount, 18);
-
+      console.log("Staking amount in wei:", selectedPlan);
       if (Number(stakeAmount) < Number(selectedPlan.minStake)) {
         return toast.error(`Minimum stake is ${selectedPlan.minStake} 2PC`);
       }
@@ -132,7 +132,7 @@ async function fetchBalance() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           wallet,
-          planId: selectedPlan._id,
+          planId: selectedPlan.planId,
           amount: stakeAmount,
           txHash: receipt.hash,
         }),
