@@ -26,6 +26,7 @@ export default function DashboardLayout({
     { name: "All stages", href: "/dashboard/ico", icon: ListTodo },
     { name: "Staking", href: "/dashboard/staking", icon: Coins },
     { name: "My Staking", href: "/dashboard/mystaking", icon: Coins },
+    { name: "My Income", href: "/dashboard/myincom", icon: Coins },
     { name: "Referral Tree", href: "/dashboard/referrals", icon: Network }, // Added this
     { name: "All logs", href: "/dashboard/transactions", icon: FileText, hasSub: true },
   ];

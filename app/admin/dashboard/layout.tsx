@@ -23,6 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "ICO Stages", href: "/admin/dashboard/ico", icon: Rocket },
     { name: "Manage Users", href: "/admin/dashboard/UserList", icon: Users },
     { name: "Staking", href: "/admin/dashboard/staking", icon:  Coins },
+    { name: "My Earning", href: "/admin/dashboard/myincom", icon:  Coins },
   ];
 
   return (

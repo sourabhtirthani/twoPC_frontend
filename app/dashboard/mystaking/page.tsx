@@ -216,12 +216,12 @@ export default function MyStakesPage() {
                         <td className="px-8 py-6">
                           <div className="flex justify-end gap-3">
                             {/* Emergency Withdraw - Always available but risky */}
-                           <button 
+                           {/* <button 
                                 onClick={() => triggerEmergencyPopup(stake.stakeIndex)}
                                 className="p-3 bg-slate-950 border border-slate-800 text-slate-500 hover:text-red-500 hover:border-red-500/50 rounded-xl transition-all shadow-sm"
                                 >
                               <AlertTriangle size={18} />
-                            </button>
+                            </button> */}
 
                             {/* Main Claim Button */}
                             <button
