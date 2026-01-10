@@ -71,7 +71,7 @@ export default function ReferralEarningsPage() {
       const accounts = await provider.send("eth_accounts", []);
       if (accounts.length === 0) return;
 
-      const wallet = "0x631b010f928e3cdbcfd352ffa11e8e6bfe383e5a"; //accounts[0];
+      const wallet = accounts[0];
         console.log("Fetching earnings for wallet:", wallet);
       const res = await fetch(
         `${BACKEND_URL}/transaction/transactions?wallet=${wallet}`

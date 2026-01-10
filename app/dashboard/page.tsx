@@ -109,19 +109,19 @@ export default function DashboardHome() {
         <StatCard
           icon={PiggyBank}
           title="Total deposit"
-          value="1,000,000.000"
+          value="0.000"
           unit="2PC"
         />
         <StatCard
           icon={Hourglass}
           title="Total withdraw"
-          value="0.00000000"
+          value="0.00"
           unit="2PC"
         />
         <StatCard
           icon={CreditCard}
           title="Total payment"
-          value="20.11000000"
+          value="0.0"
           unit="2PC"
         />
       </div>
