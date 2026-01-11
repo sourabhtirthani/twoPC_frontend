@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { TOKEN_ABI, TOKEN_ADDRESS } from "../lib/config";
+import { BACKEND_URL, TOKEN_ABI, TOKEN_ADDRESS } from "../lib/config";
 
 const BSC_TESTNET = {
   chainId: "0x61",
@@ -92,10 +92,10 @@ export default function JoinClient() {
 
       toast.loading("Confirm transaction...", { id: "join" });
 
-      const tx = await token.registerReferrer(refAddress);
-      await tx.wait();
-
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/register`, {
+      // const tx = await token.registerReferrer(refAddress);
+      // await tx.wait();
+      console.log("Registering user:", { wallet, name, referrer: refAddress });
+      await fetch(`${BACKEND_URL}/user/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet, name, referrer: refAddress }),

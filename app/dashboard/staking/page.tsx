@@ -189,7 +189,7 @@ async function fetchBalance() {
               >
                 {/* APR Badge */}
                 <div className="absolute top-0 right-0 px-6 py-2 bg-blue-600 text-white font-black rounded-bl-2xl shadow-lg">
-                  {plan.apr}% APR
+                  {(plan.apr)/10}% APR
                 </div>
 
                 <div className="space-y-6">
