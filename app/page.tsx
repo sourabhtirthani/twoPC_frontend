@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ethers } from "ethers";
 import { useRouter } from "next/navigation";
+import { BACKEND_URL } from "./lib/config";
 
 export default function Home() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function Home() {
       const wallet = accounts[0];
 
       // 🔗 BACKEND CHECK
-      const res = await fetch("http://localhost:5000/user/wallet-login", {
+      const res = await fetch(`${BACKEND_URL}/user/wallet-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet }),
