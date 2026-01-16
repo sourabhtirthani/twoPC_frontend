@@ -13,14 +13,16 @@ import {
 export default function StakingPage() {
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const USD_PER_2PC = 10;
 
   const [form, setForm] = useState({
-    title: "",
-    apr: "",
-    lockDays: "",
-    minStake: "",
-    isFixed: true,
-  });
+  title: "",
+  apr: "",
+  lockDays: "",
+  minStakeUSD: "",
+  maxStakeUSD: "",
+  isFixed: true,
+});
 
   /* ---------------- FETCH PLANS ---------------- */
   const fetchPlans = async () => {
@@ -41,12 +43,16 @@ export default function StakingPage() {
     setForm({ ...form, [key]: value });
 
   const validate = () => {
-    if (!form.title.trim()) return "Title required";
-    if (+form.apr <= 0) return "Invalid APR";
-    if (+form.lockDays <= 0) return "Invalid lock days";
-    if (+form.minStake <= 0) return "Invalid min stake";
-    return null;
-  };
+  if (!form.title.trim()) return "Title required";
+  if (+form.apr <= 0) return "Invalid APR";
+  if (+form.lockDays <= 0) return "Invalid lock days";
+  if (+form.minStakeUSD <= 0) return "Invalid min stake";
+  if (+form.maxStakeUSD <= 0) return "Invalid max stake";
+  if (+form.maxStakeUSD < +form.minStakeUSD)
+    return "Max stake must be greater than min stake";
+  return null;
+};
+
 
   const createPlan = async () => {
     try {
@@ -61,13 +67,18 @@ export default function StakingPage() {
       const signer = await provider.getSigner();
 
       const staking = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
+      const minStake2PC = Number(form.minStakeUSD) * USD_PER_2PC;
+      const maxStake2PC = Number(form.maxStakeUSD) * USD_PER_2PC;
 
       toast.loading("Creating plan on blockchain...", { id: "stake" });
       const tx = await staking.createPlan(
         form.isFixed,
         Number(form.apr),
-        Number(form.lockDays)
+        Number(form.lockDays),
+        ethers.parseUnits(minStake2PC.toString(), 18),
+        ethers.parseUnits(maxStake2PC.toString(), 18)
       );
+
 
       await tx.wait();
 
@@ -75,17 +86,18 @@ export default function StakingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: form.title,
-          apr: Number(form.apr),
-          lockDays: Number(form.lockDays),
-          minStake: form.minStake,
-          isFixed: form.isFixed,
-          txHash: tx.hash,
-        }),
+        title: form.title,
+        apr: Number(form.apr),
+        lockDays: Number(form.lockDays),
+        minStake: minStake2PC,
+        maxStake: maxStake2PC,
+        isFixed: form.isFixed,
+        txHash: tx.hash,
+      }),
       });
 
       toast.success("Staking plan created", { id: "stake" });
-      setForm({ title: "", apr: "", lockDays: "", minStake: "", isFixed: true });
+      setForm({ title: "", apr: "", lockDays: "", minStakeUSD: "", maxStakeUSD: "", isFixed: true });
       fetchPlans();
     } catch (err: any) {
       console.error(err);
@@ -117,7 +129,21 @@ export default function StakingPage() {
             <Input label="Plan Title" placeholder="e.g. Platinum 365" value={form.title} onChange={(v:any) => update("title", v)} />
             <Input label="APR (%)" type="number" placeholder="12" value={form.apr} onChange={(v:any) => update("apr", v)} />
             <Input label="Lock Days" type="number" placeholder="365" value={form.lockDays} onChange={(v:any) => update("lockDays", v)} />
-            <Input label="Min Stake (2PC)" type="number" placeholder="1000" value={form.minStake} onChange={(v:any) => update("minStake", v)} />
+            <Input
+              label="Min Stake (₹)"
+              type="number"
+              placeholder="100"
+              value={form.minStakeUSD}
+              onChange={(v:any) => update("minStakeUSD", v)}
+            />
+
+            <Input
+              label="Max Stake (₹)"
+              type="number"
+              placeholder="5000"
+              value={form.maxStakeUSD}
+              onChange={(v:any) => update("maxStakeUSD", v)}
+            />
             
             <div className="col-span-full pt-4 flex items-center justify-between border-t border-slate-100 mt-2">
                 <p className="text-sm text-slate-500 flex items-center gap-2 italic">
@@ -152,6 +178,7 @@ export default function StakingPage() {
                 <th className="px-8 py-5 text-left">Reward (APR)</th>
                 <th className="px-8 py-5 text-left">Lock Duration</th>
                 <th className="px-8 py-5 text-left">Min Stake</th>
+                <th className="px-8 py-5 text-left">Max Stake</th>
                 <th className="px-8 py-5 text-left">Status</th>
                 <th className="px-8 py-5 text-right">Actions</th>
               </tr>
@@ -173,9 +200,10 @@ export default function StakingPage() {
                 plans.map((p) => (
                   <tr key={p._id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-8 py-5 font-bold text-slate-700">{p.title}</td>
-                    <td className="px-8 py-5 text-blue-600 font-bold">{p.apr}%</td>
+                    <td className="px-8 py-5 text-blue-600 font-bold">{(p.apr)/10}%</td>
                     <td className="px-8 py-5 text-slate-600 font-medium">{p.lockDays} Days</td>
-                    <td className="px-8 py-5 text-slate-600 font-medium">{p.minStake} 2PC</td>
+                    <td className="px-8 py-5 text-slate-600 font-medium">{(p.minStake)/USD_PER_2PC} ₹</td>
+                    <td className="px-8 py-5 text-slate-600 font-medium">{(p.maxStake)/USD_PER_2PC} ₹</td>
                     <td className="px-8 py-5">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-tighter shadow-sm ${
                         p.active 

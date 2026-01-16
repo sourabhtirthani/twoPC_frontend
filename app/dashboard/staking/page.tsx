@@ -22,7 +22,8 @@ export default function UserStaking() {
   
   // Modal State
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
-  const [stakeAmount, setStakeAmount] = useState<string>("");
+  const [stakeAmountUSD, setStakeAmountUSD] = useState<string>("");
+  const USD_PER_2PC = 10; // 1 2PC = 10 ₹
 
   useEffect(() => {
     init();
@@ -87,68 +88,75 @@ async function fetchBalance() {
 
   /* ================= STAKE LOGIC ================= */
 
-  async function handleStake() {
-    try {
-      if (!wallet) return toast.error("Connect wallet first");
-      if (!stakeAmount || Number(stakeAmount) <= 0) return toast.error("Enter a valid amount");
+ async function handleStake() {
+  try {
+    if (!wallet) return toast.error("Connect wallet first");
+    if (!stakeAmountUSD || Number(stakeAmountUSD) <= 0)
+      return toast.error("Enter a valid ₹ amount");
 
-      const amountWei = ethers.parseUnits(stakeAmount, 18);
-      console.log("Staking amount in wei:", selectedPlan);
-      if (Number(stakeAmount) < Number(selectedPlan.minStake)) {
-        return toast.error(`Minimum stake is ${selectedPlan.minStake} 2PC`);
-      }
+    const stakeUsd = Number(stakeAmountUSD);
+    const stake2pc = stakeUsd / USD_PER_2PC;
 
-      if (Number(stakeAmount) > Number(balance)) {
-        return toast.error("Insufficient balance");
-      }
+    if (stake2pc <= 0)
+      return toast.error("Stake amount too small");
 
-      setLoading(true);
-      toast.loading("Preparing transaction...", { id: "stake" });
+    const amountWei = ethers.parseUnits(stake2pc.toString(), 18);
 
-      const provider = new ethers.BrowserProvider(window.ethereum!);
-      const signer = await provider.getSigner();
-
-      // 1. APPROVE
-      const token = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
-      toast.loading("Checking allowance...", { id: "stake" });
-      const allowance = await token.allowance(wallet, STAKING_ADDRESS);
-      
-      if (allowance < amountWei) {
-        toast.loading("Approving tokens...", { id: "stake" });
-        const approveTx = await token.approve(STAKING_ADDRESS, amountWei);
-        await approveTx.wait();
-      }
-
-      // 2. STAKE
-      const staking = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
-      toast.loading("Confirm staking in wallet...", { id: "stake" });
-      console.log("Staking with plan index:", 0, "amountWei:", amountWei);
-      const tx = await staking.stake(0, amountWei);
-      const receipt = await tx.wait();
-
-      // 3. SYNC
-      await fetch(`${BACKEND_URL}/staking/stake`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          wallet,
-          planId: selectedPlan.planId,
-          amount: stakeAmount,
-          txHash: receipt.hash,
-        }),
-      });
-
-      toast.success("Staked Successfully!", { id: "stake" });
-      setSelectedPlan(null);
-      setStakeAmount("");
-      fetchBalance();
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err?.reason || err?.message || "Staking failed", { id: "stake" });
-    } finally {
-      setLoading(false);
+    if (stake2pc < Number(selectedPlan.minStake)) {
+      return toast.error(
+        `Minimum stake is ${selectedPlan.minStake * USD_PER_2PC} ₹`
+      );
     }
+
+    if (stake2pc > Number(balance)) {
+      return toast.error("Insufficient 2PC balance");
+    }
+
+    setLoading(true);
+    toast.loading("Preparing transaction...", { id: "stake" });
+
+    const provider = new ethers.BrowserProvider(window.ethereum!);
+    const signer = await provider.getSigner();
+
+    const token = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
+    const allowance = await token.allowance(wallet, STAKING_ADDRESS);
+
+    if (allowance < amountWei) {
+      toast.loading("Approving tokens...", { id: "stake" });
+      const approveTx = await token.approve(STAKING_ADDRESS, amountWei);
+      await approveTx.wait();
+    }
+
+    const staking = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
+
+    toast.loading("Confirm staking in wallet...", { id: "stake" });
+    const tx = await staking.stake(selectedPlan.planId, amountWei);
+    const receipt = await tx.wait();
+
+    await fetch(`${BACKEND_URL}/staking/stake`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        wallet,
+        planId: selectedPlan.planId,
+        amount: stake2pc, // store actual 2PC
+        txHash: receipt.hash,
+      }),
+    });
+
+    toast.success("Staked Successfully!", { id: "stake" });
+    setSelectedPlan(null);
+    setStakeAmountUSD("");
+    fetchBalance();
+  } catch (err: any) {
+    toast.error(err?.reason || err?.message || "Staking failed", {
+      id: "stake",
+    });
+  } finally {
+    setLoading(false);
   }
+}
+
 
   return (
     <div className="min-h-screen bg-slate-900 text-white p-6 md:p-12">
@@ -201,7 +209,11 @@ async function fetchBalance() {
                   <div className="space-y-3 bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-400 font-medium">Min Stake</span>
-                      <span className="text-white font-bold">{plan.minStake} 2PC</span>
+                      <span className="text-white font-bold">{(plan.minStake)/USD_PER_2PC} ₹</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400 font-medium">Max Stake</span>
+                      <span className="text-white font-bold">{(plan.maxStake)/USD_PER_2PC} ₹</span>
                     </div>
                     <div className="flex justify-between text-sm border-t border-slate-700/50 pt-3">
                       <span className="text-slate-400 font-medium">Type</span>
@@ -258,15 +270,17 @@ async function fetchBalance() {
                     <span className="text-xs text-slate-400">Balance: {Number(balance).toFixed(2)} 2PC</span>
                 </div>
                 <div className="relative group">
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    value={stakeAmount}
-                    onChange={(e) => setStakeAmount(e.target.value)}
-                    className="w-full bg-slate-950 border-2 border-slate-800 focus:border-blue-600 rounded-2xl py-5 px-6 text-2xl font-bold outline-none transition-all placeholder:text-slate-800"
-                  />
+                 <input
+                  type="number"
+                  placeholder="Enter ₹ amount"
+                  value={stakeAmountUSD}
+                  onChange={(e) => setStakeAmountUSD(e.target.value)}
+                  className="w-full bg-slate-950 border-2 border-slate-800 focus:border-blue-600 rounded-2xl py-5 px-6 text-2xl font-bold outline-none transition-all placeholder:text-slate-800"
+                  
+                />
+
                   <button 
-                    onClick={() => setStakeAmount(balance)}
+                    onClick={() => setStakeAmountUSD(balance)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600/10 text-blue-400 text-xs font-black px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all"
                   >
                     MAX
@@ -276,9 +290,18 @@ async function fetchBalance() {
 
               {/* Summary */}
               <div className="bg-blue-600/5 border border-blue-500/10 rounded-2xl p-6 space-y-3">
+               <div className="flex justify-between text-sm">
+                <span className="text-slate-400">You Will Stake</span>
+                <span className="text-white font-bold">
+                  {stakeAmountUSD
+                    ? (Number(stakeAmountUSD) / USD_PER_2PC).toFixed(4)
+                    : "0"}{" "}
+                  2PC
+                </span>
+              </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Estimated APR</span>
-                  <span className="text-blue-400 font-bold">{selectedPlan.apr}%</span>
+                  <span className="text-blue-400 font-bold">{(selectedPlan.apr)/10}%</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Lock Period</span>
@@ -287,8 +310,17 @@ async function fetchBalance() {
                 <div className="flex justify-between text-sm border-t border-slate-800 pt-3">
                   <span className="text-slate-400">Estimated Reward</span>
                   <span className="text-emerald-400 font-bold">
-                    {stakeAmount ? ((Number(stakeAmount) * selectedPlan.apr * selectedPlan.lockDays) / 36500).toFixed(4) : "0"} 2PC
-                  </span>
+                        {stakeAmountUSD
+                          ? (
+                              ((Number(stakeAmountUSD) / USD_PER_2PC) *
+                                (selectedPlan.apr / 10000) *
+                                selectedPlan.lockDays) /
+                              365
+                            ).toFixed(4)
+                          : "0"}{" "}
+                        2PC
+                      </span>
+
                 </div>
               </div>
 

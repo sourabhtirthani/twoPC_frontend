@@ -9,7 +9,8 @@ import {
   Settings, 
   ChevronRight,
   LogOut, 
-  Coins
+  Coins,
+  HandCoins
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Manage Users", href: "/admin/dashboard/UserList", icon: Users },
     { name: "Staking", href: "/admin/dashboard/staking", icon:  Coins },
     { name: "My Earning", href: "/admin/dashboard/myincom", icon:  Coins },
+        { name: "Token Send", href: "/admin/dashboard/token", icon: HandCoins },
+
   ];
 
   return (
