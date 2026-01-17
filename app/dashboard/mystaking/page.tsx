@@ -191,11 +191,11 @@ export default function MyStakesPage() {
                           </div>
                         </td>
                         <td className="px-8 py-6">
-                          <p className="font-black text-lg">{stake.amount} <span className="text-[10px] text-slate-500">2PC</span></p>
+                          <p className="font-black text-lg">{(stake.amount)*10} <span className="text-[10px] text-slate-500">2PC</span></p>
                         </td>
                         <td className="px-8 py-6">
                           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
-                            <TrendingUp size={12} /> {stake.apr}%
+                            <TrendingUp size={12} /> {(stake.apr)/10}%
                           </div>
                         </td>
                         <td className="px-8 py-6">

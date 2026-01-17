@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { 
   LayoutDashboard, 
   Rocket, 
@@ -10,11 +11,14 @@ import {
   ChevronRight,
   LogOut, 
   Coins,
+  Menu,
+  X,
   HandCoins
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Helper to check if a link is active
   const isActive = (path: string) => pathname === path;
@@ -30,21 +34,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#F1F5F9]">
+    <div className="flex min-h-screen bg-[#F1F5F9] relative">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* --- SIDEBAR --- */}
-      <aside className="w-72 bg-[#0F172A] text-slate-300 flex flex-col shadow-xl">
+      <aside 
+        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#0F172A] text-slate-300 flex flex-col shadow-xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         {/* Logo Section */}
-        <div className="p-6 border-b border-slate-800">
+        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
               A
             </div>
             <h2 className="text-xl font-bold text-white tracking-tight">Admin Panel</h2>
           </div>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden text-slate-400 hover:text-white"
+            aria-label="Close menu"
+          >
+            <X size={24} />
+          </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 mt-4">
+        <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto">
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">
             Main Menu
           </p>
@@ -55,6 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={() => setIsSidebarOpen(false)}
                 className={`
                   flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group
                   ${active 
@@ -82,14 +106,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col min-h-screen overflow-hidden w-full">
         {/* Top Header Bar */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
-           <h1 className="text-slate-800 font-semibold text-lg capitalize">
-              {pathname.split("/").pop()?.replace("-", " ")}
-           </h1>
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
            <div className="flex items-center gap-4">
-              <div className="text-right">
+             {/* Mobile Menu Toggle */}
+             <button 
+               onClick={() => setIsSidebarOpen(true)}
+               className="md:hidden text-slate-500 hover:text-slate-800"
+               aria-label="Open menu"
+             >
+               <Menu size={24} />
+             </button>
+             
+             <h1 className="text-slate-800 font-semibold text-lg capitalize hidden sm:block">
+                {pathname.split("/").pop()?.replace("-", " ")}
+             </h1>
+           </div>
+
+           <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
                 <p className="text-xs font-bold text-slate-900">Admin User</p>
                 <p className="text-[10px] text-slate-500">Super Admin</p>
               </div>
@@ -98,7 +134,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-y-auto p-8 bg-[#F8FAFC]">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#F8FAFC]">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

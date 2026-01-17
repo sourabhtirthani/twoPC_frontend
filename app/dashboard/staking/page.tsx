@@ -100,11 +100,11 @@ async function fetchBalance() {
     if (stake2pc <= 0)
       return toast.error("Stake amount too small");
 
-    const amountWei = ethers.parseUnits(stake2pc.toString(), 18);
-
-    if (stake2pc < Number(selectedPlan.minStake)) {
+    const amountWei = ethers.parseUnits((stake2pc * USD_PER_2PC).toString(), 19);
+    console.log("stake2pc", stake2pc * USD_PER_2PC, " amountWei", selectedPlan.minStake/USD_PER_2PC);
+    if ((stake2pc * USD_PER_2PC) < Number(selectedPlan.minStake/USD_PER_2PC)) {
       return toast.error(
-        `Minimum stake is ${selectedPlan.minStake * USD_PER_2PC} ₹`
+        `Minimum stake is ${selectedPlan.minStake/USD_PER_2PC } ₹`
       );
     }
 
@@ -128,7 +128,7 @@ async function fetchBalance() {
     }
 
     const staking = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
-
+    console.log("Staking plan:", selectedPlan.planId, " amountWei:", amountWei);
     toast.loading("Confirm staking in wallet...", { id: "stake" });
     const tx = await staking.stake(selectedPlan.planId, amountWei);
     const receipt = await tx.wait();
