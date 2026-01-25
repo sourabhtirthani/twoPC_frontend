@@ -9,16 +9,26 @@ import {
   Users, 
   Settings, 
   ChevronRight,
-  LogOut, 
+  LogOut,
   Coins,
   Menu,
   X,
   HandCoins
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ethers } from "ethers";
+import { useEffect } from "react";
+import { BACKEND_URL } from "../../lib/config";
+
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const router = useRouter();
+
+  const [wallet, setWallet] = useState("");
+  const [admin, setAdmin] = useState<{ name: string; wallet: string } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Helper to check if a link is active
   const isActive = (path: string) => pathname === path;
@@ -27,11 +37,67 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { name: "ICO Stages", href: "/admin/dashboard/ico", icon: Rocket },
     { name: "Manage Users", href: "/admin/dashboard/UserList", icon: Users },
-    { name: "Staking", href: "/admin/dashboard/staking", icon:  Coins },
-    { name: "My Earning", href: "/admin/dashboard/myincom", icon:  Coins },
-        { name: "Token Send", href: "/admin/dashboard/token", icon: HandCoins },
+    { name: "Staking", href: "/admin/dashboard/staking", icon: Coins },
+    { name: "My Earning", href: "/admin/dashboard/myincom", icon: Coins },
+    { name: "Token Send", href: "/admin/dashboard/token", icon: HandCoins },
 
   ];
+  useEffect(() => {
+    async function initAdmin() {
+      if (!window.ethereum) {
+        router.replace("/");
+        return;
+      }
+
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const accounts = await provider.send("eth_accounts", []);
+
+        if (!accounts || accounts.length === 0) {
+          router.replace("/");
+          return;
+        }
+
+        const address = accounts[0].toLowerCase();
+        setWallet(address);
+
+        const res = await fetch(`${BACKEND_URL}/user/${address}`);
+
+        if (!res.ok) {
+          router.replace("/");
+          return;
+        }
+
+        const data = await res.json();
+        console.log("Admin data:", data);
+        // ❌ Not admin → kick to user dashboard
+      if (!data || data.role !== "ADMIN") {
+          router.replace("/dashboard");
+          return;
+        }
+
+        setAdmin({
+          name: data.name,
+          wallet: data.wallet,
+        });
+      } catch (err) {
+        console.error("Admin auth failed:", err);
+        router.replace("/");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    initAdmin();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center text-slate-400">
+        Verifying admin wallet...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#F1F5F9] relative">
@@ -71,7 +137,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">
             Main Menu
           </p>
-          
+
           {navItems.map((item) => {
             const active = isActive(item.href);
             return (
@@ -81,8 +147,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 onClick={() => setIsSidebarOpen(false)}
                 className={`
                   flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group
-                  ${active 
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
+                  ${active
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
                     : "hover:bg-slate-800 hover:text-white"}
                 `}
               >
@@ -97,12 +163,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Footer / User Section */}
-        <div className="p-4 border-t border-slate-800">
-          <button className="flex items-center gap-3 w-full px-3 py-2 text-slate-400 hover:text-red-400 transition-colors text-sm font-medium">
-            <LogOut size={18} />
-            Logout
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            router.replace("/");
+          }}
+          className="flex items-center gap-3 w-full px-3 py-2 text-slate-400 hover:text-red-400 transition-colors text-sm font-medium"
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
+
       </aside>
 
       {/* --- MAIN CONTENT --- */}

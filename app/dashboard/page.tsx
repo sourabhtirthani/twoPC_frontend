@@ -5,7 +5,7 @@ import { Copy, PiggyBank, Hourglass, CreditCard, ExternalLink } from "lucide-rea
 import toast from "react-hot-toast";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { TOKEN_ADDRESS, BSCSCAN_API_KEY } from "../lib/config";
+import { TOKEN_ADDRESS, BSCSCAN_API_KEY, BACKEND_URL } from "../lib/config";
 dayjs.extend(relativeTime);
 
 import { ethers } from "ethers";
@@ -16,6 +16,11 @@ export default function DashboardHome() {
   const [referralLink, setReferralLink] = useState("");
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loadingTx, setLoadingTx] = useState(false);
+  const [stats, setStats] = useState({
+    totalDeposit: "0.000",
+    totalActiveStake: "0.000",
+    totalCommission: "0.000",
+  });
 
   useEffect(() => {
     async function loadWallet() {
@@ -28,7 +33,7 @@ export default function DashboardHome() {
 
       const address = accounts[0];
       setWallet(address);
-
+      fetchDashboardStats(address);
       // build referral link
       setReferralLink(
         `${window.location.origin}/join?ref=${address}`
@@ -36,47 +41,65 @@ export default function DashboardHome() {
     }
 
     loadWallet();
+
   }, []);
+  async function fetchDashboardStats(address: string) {
+    try {
+      const res = await fetch(
+        `${BACKEND_URL}/user/stats?wallet=${address}`
+      );
+
+      const data = await res.json();
+
+      setStats({
+        totalDeposit: data.totalDeposit ?? "0.000",
+        totalActiveStake: data.totalActiveStake ?? "0.000",
+        totalCommission: data.totalCommission ?? "0.000",
+      });
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  }
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
     toast.success("Referral link copied!");
   };
   async function fetchTokenTransactions() {
-  try {
-    const url =
-      `https://api-testnet.bscscan.com/api/v2` +
-      `?chainid=97` +
-      `&module=account` +
-      `&action=tokentx` +
-      `&contractaddress=${TOKEN_ADDRESS}` +
-      `&page=1` +
-      `&offset=20` +
-      `&sort=desc` +
-      `&apikey=${BSCSCAN_API_KEY}`;
+    try {
+      const url =
+        `https://api-testnet.bscscan.com/api/v2` +
+        `?chainid=97` +
+        `&module=account` +
+        `&action=tokentx` +
+        `&contractaddress=${TOKEN_ADDRESS}` +
+        `&page=1` +
+        `&offset=20` +
+        `&sort=desc` +
+        `&apikey=${BSCSCAN_API_KEY}`;
 
-    const res = await fetch(url);
+      const res = await fetch(url);
 
-    // 🔐 Safety check (VERY IMPORTANT)
-    const text = await res.text();
-    if (!text.startsWith("{")) {
-      console.error("Non-JSON response:", text);
-      return;
+      // 🔐 Safety check (VERY IMPORTANT)
+      const text = await res.text();
+      if (!text.startsWith("{")) {
+        console.error("Non-JSON response:", text);
+        return;
+      }
+
+      const data = JSON.parse(text);
+      console.log("BscScan token tx data:", data);
+      if (data.status === "1") {
+        console.log("TXs:", data.result);
+        setTransactions(data.result);
+      } else {
+        console.error("BscScan error:", data.result);
+        setTransactions([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch token txs", err);
     }
-
-    const data = JSON.parse(text);
-    console.log("BscScan token tx data:", data);
-    if (data.status === "1") {
-      console.log("TXs:", data.result);
-      setTransactions(data.result);
-    } else {
-      console.error("BscScan error:", data.result);
-      setTransactions([]);
-    }
-  } catch (err) {
-    console.error("Failed to fetch token txs", err);
   }
-}
 
 
   // useEffect(() => {
@@ -108,20 +131,20 @@ export default function DashboardHome() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           icon={PiggyBank}
-          title="Total deposit"
-          value="0.000"
+          title="Total Purchased"
+          value={stats.totalDeposit}
           unit="2PC"
         />
         <StatCard
           icon={Hourglass}
-          title="Total withdraw"
-          value="0.00"
+          title="Total Stake"
+          value={stats.totalActiveStake}
           unit="2PC"
         />
         <StatCard
           icon={CreditCard}
-          title="Total payment"
-          value="0.0"
+          title="Total Commission Earned"
+          value={stats.totalCommission}
           unit="2PC"
         />
       </div>

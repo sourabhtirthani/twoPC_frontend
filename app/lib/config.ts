@@ -1,5 +1,5 @@
- export const BACKEND_URL = "https://twopc-backend-gfhe.onrender.com";
-// export const BACKEND_URL = "http://localhost:5000";
+//  export const BACKEND_URL = "https://twopc-backend-gfhe.onrender.com";
+ export const BACKEND_URL = "http://localhost:5000";
 
 export const PRESALE_ADDRESS = "0x55E50B39EC03328B9F2f73B4258a2626eB4d5E78";
 export const TOKEN_ADDRESS= "0x2b5539C141EcE2B8b84F1E85268dF827BeeC1De4";

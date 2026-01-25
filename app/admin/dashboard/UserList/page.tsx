@@ -107,6 +107,7 @@ export default function UserList() {
               <th className="px-8 py-5">Wallet</th>
               <th className="px-8 py-5">Role</th>
               <th className="px-8 py-5">Balance</th>
+              <th className="px-8 py-5">Total Stake</th>
               <th className="px-8 py-5 text-center">Actions</th>
             </tr>
           </thead>
@@ -136,6 +137,9 @@ export default function UserList() {
                 </td>
                 <td className="px-8 py-5 font-bold text-slate-700">
                   {user.balance || "0"} <span className="text-[10px] text-slate-400">2PC</span>
+                </td>
+                <td className="px-8 py-5 font-bold text-slate-700">
+                  {user.totalStaked || "0"} <span className="text-[10px] text-slate-400">2PC</span>
                 </td>
                 <td className="px-8 py-5 text-center">
                   <button 

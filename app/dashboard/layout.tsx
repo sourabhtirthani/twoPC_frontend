@@ -16,6 +16,10 @@ import {
   Menu,
   X
 } from "lucide-react";
+import { useEffect } from "react";
+import { BACKEND_URL } from "../lib/config";
+import { useRouter } from "next/navigation";
+import { ethers } from "ethers";
 
 export default function DashboardLayout({
   children,
@@ -34,7 +38,83 @@ export default function DashboardLayout({
     { name: "Referral Tree", href: "/dashboard/referrals", icon: Network }, 
     { name: "All logs", href: "/dashboard/transactions", icon: FileText, hasSub: true },
   ];
+  const router = useRouter();
 
+  const [wallet, setWallet] = useState<string>("");
+  const [user, setUser] = useState<{ name: string; wallet: string } | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  const fetchUserList = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/user/:userlist`);
+      const data = await res.json();
+      //setPlans(Array.isArray(data) ? data : []);
+    } catch {
+      //setPlans([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserList();
+  }, []);
+
+  useEffect(() => {
+    async function initUser() {
+      if (!window.ethereum) {
+        router.replace("/");
+        return;
+      }
+
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const accounts = await provider.send("eth_accounts", []);
+
+        // ❌ Not connected → kick out
+        if (!accounts || accounts.length === 0) {
+          router.replace("/");
+          return;
+        }
+
+        const address = accounts[0].toLowerCase();
+        setWallet(address);
+
+        // ✅ Fetch user from backend
+        const res = await fetch(`${BACKEND_URL}/user/${address}`);
+
+        if (!res.ok) {
+          router.replace("/");
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!data) {
+          router.replace("/");
+          return;
+        }
+
+        setUser({
+          name: data.name,
+          wallet: data.wallet,
+        });
+      } catch (err) {
+        console.error("Auth failed:", err);
+        router.replace("/");
+      } finally {
+        setLoadingUser(false);
+      }
+    }
+
+    initUser();
+  }, [router]);
+
+  if (loadingUser) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center text-slate-400">
+        Checking wallet authorization...
+      </div>
+    );
+  }
   return (
     <div className="flex min-h-screen bg-[#020617] text-white font-sans relative">
       {/* Mobile Overlay */}
@@ -54,7 +134,7 @@ export default function DashboardLayout({
         {/* Logo Section */}
         <div className="p-6 flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            <span className="text-blue-500">2PC</span> Admin
+            <span className="text-blue-500">2PC</span> User
           </h2>
           <button 
             onClick={() => setIsSidebarOpen(false)}
@@ -70,7 +150,7 @@ export default function DashboardLayout({
           <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest px-4 mb-4">
             General
           </p>
-          
+
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -108,15 +188,18 @@ export default function DashboardLayout({
         {/* Optional User Section Footer */}
         <div className="p-4 border-t border-slate-800/50">
           <div className="bg-[#0B122B] rounded-xl p-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs">
-              AD
+            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs uppercase">
+              {user?.name?.[0] || "U"}
             </div>
             <div className="flex-1 overflow-hidden text-xs">
-              <p className="font-bold truncate">Admin User</p>
-              <p className="text-slate-500 truncate">admin@2pccoin.com</p>
+              <p className="font-bold truncate">{user?.name}</p>
+              <p className="text-slate-500 truncate font-mono">
+                {user?.wallet?.slice(0, 6)}...{user?.wallet?.slice(-4)}
+              </p>
             </div>
           </div>
         </div>
+
       </aside>
 
       {/* Main Content Area */}

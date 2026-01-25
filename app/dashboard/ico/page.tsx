@@ -27,6 +27,22 @@ export default function IcoPage() {
     return <BuyToken selected={selected} onBack={() => setView("list")} />;
   }
 
+  const getIcoStatus = (ico: any) => {
+    const now = Date.now();
+    const start = ico.start * 1000;
+    const end = ico.end * 1000;
+
+    if (!ico.active) return "Ended";
+    if (now < start) return "Upcoming";
+    if (now >= start && now < end) return "Running";
+    return "Ended";
+  };
+
+  const isRunning = (ico: any) => {
+    const now = Date.now();
+    return ico.active && now >= ico.start * 1000 && now < ico.end * 1000;
+  };
+
   return (
     <div className="min-h-screen bg-[#020617] p-8 text-white">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
@@ -34,13 +50,22 @@ export default function IcoPage() {
           <div key={i} className="bg-[#050B24] border border-slate-800 rounded-2xl p-6 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">{ico.title}</h2>
-              <span className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${
-                ico.status === 'Running' || !ico.status 
-                ? "text-green-400 border-green-500/50 bg-green-500/10" 
-                : "text-red-400 border-red-500/50 bg-red-500/10"
-              }`}>
-                {ico.status || "Running"}
-              </span>
+              {(() => {
+                const status = getIcoStatus(ico);
+                return (
+                  <span
+                    className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${status === "Running"
+                        ? "text-green-400 border-green-500/50 bg-green-500/10"
+                        : status === "Upcoming"
+                          ? "text-yellow-400 border-yellow-500/50 bg-yellow-500/10"
+                          : "text-red-400 border-red-500/50 bg-red-500/10"
+                      }`}
+                  >
+                    {status}
+                  </span>
+                );
+              })()}
+
             </div>
 
             <div className="text-2xl font-bold mb-8 flex items-center gap-2">
@@ -69,13 +94,18 @@ export default function IcoPage() {
             </div>
 
             <button
+              disabled={!isRunning(ico)}
               onClick={() => {
                 setSelected({ ...ico, phaseIndex: i });
                 setView("buy");
               }}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#06B6D4] font-bold text-white shadow-lg shadow-purple-500/20 hover:opacity-90 transition-all"
+              className={`w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all ${
+                isRunning(ico)
+                  ? "bg-gradient-to-r from-[#A855F7] to-[#06B6D4] hover:opacity-90"
+                  : "bg-slate-700 cursor-not-allowed opacity-50"
+              }`}
             >
-              Buy now
+              {isRunning(ico) ? "Buy now" : "Not Available"}
             </button>
           </div>
         ))}

@@ -92,8 +92,8 @@ export default function JoinClient() {
 
       toast.loading("Confirm transaction...", { id: "join" });
 
-      // const tx = await token.registerReferrer(refAddress);
-      // await tx.wait();
+      const tx = await token.registerReferrer(refAddress);
+      await tx.wait();
       console.log("Registering user:", { wallet, name, referrer: refAddress });
       await fetch(`${BACKEND_URL}/user/register`, {
         method: "POST",

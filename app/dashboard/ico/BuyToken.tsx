@@ -186,14 +186,14 @@ async function resolveUplines(
 
   for (let i = 0; i < levels.length; i++) {
     current = await token.referrer(current);
-
+    console.log(`Level ${i + 1} upline:`, current);
     if (!current || current === ethers.ZeroAddress) break;
 
-    const percent = levels[i]; // e.g. 5 = 5%
-
+    const percent = (Number(levels[i]) / 100) // e.g. 5 = 5%
+console.log(`Level ${i + 1} percent:`, percent.toString());
     // ✅ Correct MLM calculation
     const rewardWei = (Number(tokenAmount) * Number(percent)) / (100);
-
+    console.log(`Level ${i + 1} reward (wei):`, rewardWei.toString());
     if (rewardWei === (0)) continue; // safety
 
     rewards.push({
