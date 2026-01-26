@@ -127,16 +127,7 @@ const handleBuy = async () => {
     toast.loading("Waiting for blockchain confirmation...", { id: "buy" });
 
     const receipt = await tx.wait();
-    const levels: bigint[] = await token.getMLMLevels();
-    console.log("Transaction confirmed:", levels);
-
-    const rewards = await resolveUplines(
-        wallet,
-        token,
-        levels,
-        (tokenAmount)
-      );
-      console.log("Resolved uplines:", rewards);
+    
       await fetch(`${BACKEND_URL}/ico/purchase-complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -146,7 +137,6 @@ const handleBuy = async () => {
           txHash: receipt.hash,
           tokens: tokenAmount.toString(),
           amount: totalBNB.toString(),
-          rewards, // 👈 MLM rewards array
         }),
       });
 

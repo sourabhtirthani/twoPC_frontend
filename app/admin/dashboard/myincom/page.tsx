@@ -27,9 +27,9 @@ export default function ReferralEarningsPage() {
   const [earnings, setEarnings] = useState<EarningRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    totalEarned: "0",
+    networkDeapth: "0",
     totalReferrals: 0,
-    activeBonus: "0"
+    totalEarned: "0"
   });
 
   useEffect(() => {
@@ -44,14 +44,16 @@ export default function ReferralEarningsPage() {
         const wallet = accounts[0];
 
         // Fetch earnings list and summary stats
-        const res = await fetch(`${BACKEND_URL}/user/referral-earnings?wallet=${wallet}`);
+        const res = await fetch(
+          `${BACKEND_URL}/user/referral-summary/${wallet}`
+        );
         const data = await res.json();
-
-        setEarnings(data.records || []);
+        console.log("Fetched referral summary:", data);
+        // setEarnings(data.records || []);
         setStats({
-          totalEarned: data.totalEarned || "0",
-          totalReferrals: data.referralCount || 0,
-          activeBonus: data.currentPeriodBonus || "0"
+          networkDeapth: data.networkDepth || "0",
+          totalReferrals: data.directReferrals || 0,
+          totalEarned: data.totalReferralIncome || "0"
         });
       } catch (err) {
         console.error("Failed to load earnings:", err);
@@ -80,14 +82,14 @@ export default function ReferralEarningsPage() {
       const txs = await res.json();
       console.log("Fetched earnings transactions:", txs);
       // 🔄 Map backend txs → UI earnings
-      const mapped: EarningRecord[] = txs.contributors.map((tx: any) => ({
-        _id: tx._id,
+      const mapped: EarningRecord[] = txs.transactions.map((tx: any) => ({
+         _id: tx._id,
         fromWallet: tx.fromWallet,
         fromName: tx.fromName,
-        amount: tx.totalAmount,
-        timestamp: tx.createdAt,
+        amount: tx.amount,
+        timestamp: tx.timestamp,
       }));
-
+      console.log("Mapped earnings records:", mapped);
       setEarnings(mapped);
 
       // 📊 Stats
@@ -96,11 +98,11 @@ export default function ReferralEarningsPage() {
         0
       );
 
-      setStats({
-        totalEarned: total.toFixed(6),
-        totalReferrals: new Set(mapped.map(r => r.fromWallet)).size,
-        activeBonus: total.toFixed(6),
-      });
+      // setStats({
+      //   totalEarned: total.toFixed(6),
+      //   totalReferrals: new Set(mapped.map(r => r.fromWallet)).size,
+      //   activeBonus: total.toFixed(6),
+      // });
 
     } catch (err) {
       console.error("Failed to load earnings:", err);
@@ -143,13 +145,13 @@ export default function ReferralEarningsPage() {
             />
             <QuickStat 
                 label="Network Depth" 
-                value="3 Levels" 
+                value={stats.totalReferrals.toString()}
                 icon={<Layers size={20}/>} 
                 color="purple" 
             />
             <QuickStat 
                 label="This Month" 
-                value={`${stats.activeBonus} 2PC`} 
+                value={`${stats.totalEarned} 2PC`} 
                 icon={<TrendingUp size={20}/>} 
                 color="emerald" 
             />

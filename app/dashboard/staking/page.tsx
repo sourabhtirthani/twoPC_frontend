@@ -23,7 +23,7 @@ export default function UserStaking() {
   // Modal State
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const [stakeAmountUSD, setStakeAmountUSD] = useState<string>("");
-  const USD_PER_2PC = 0.10; // 1 2PC = 0.10 ₹
+  const USD_PER_2PC = 10; // 1 2PC = 0.10 ₹
 
   useEffect(() => {
     init();
@@ -95,16 +95,16 @@ async function fetchBalance() {
       return toast.error("Enter a valid ₹ amount");
 
     const stakeUsd = Number(stakeAmountUSD);
-    const stake2pc = stakeUsd / USD_PER_2PC;
+    const stake2pc = stakeUsd * USD_PER_2PC;
 
     if (stake2pc <= 0)
       return toast.error("Stake amount too small");
 
     const amountWei = ethers.parseUnits((stake2pc * USD_PER_2PC).toString(), 19);
-    console.log("stake2pc", stake2pc * USD_PER_2PC, " amountWei", selectedPlan.minStake/USD_PER_2PC);
-    if ((stake2pc * USD_PER_2PC) < Number(selectedPlan.minStake/USD_PER_2PC)) {
+    console.log("stake2pc", stake2pc * USD_PER_2PC, " amountWei", selectedPlan.minStake*USD_PER_2PC);
+    if ((stake2pc * USD_PER_2PC) < Number(selectedPlan.minStake*USD_PER_2PC)) {
       return toast.error(
-        `Minimum stake is ${selectedPlan.minStake/USD_PER_2PC } ₹`
+        `Minimum stake is ${selectedPlan.minStake*USD_PER_2PC } ₹`
       );
     }
 
@@ -294,7 +294,7 @@ async function fetchBalance() {
                 <span className="text-slate-400">You Will Stake</span>
                 <span className="text-white font-bold">
                   {stakeAmountUSD
-                    ? (Number(stakeAmountUSD) / USD_PER_2PC).toFixed(4)
+                    ? (Number(stakeAmountUSD) * USD_PER_2PC).toFixed(4)
                     : "0"}{" "}
                   2PC
                 </span>

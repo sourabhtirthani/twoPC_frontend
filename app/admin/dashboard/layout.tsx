@@ -1,36 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { 
-  LayoutDashboard, 
-  Rocket, 
-  Users, 
-  Settings, 
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  LayoutDashboard,
+  Rocket,
+  Users,
   ChevronRight,
   LogOut,
   Coins,
-  Menu,
-  X,
-  HandCoins
+  HandCoins,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { ethers } from "ethers";
-import { useEffect } from "react";
 import { BACKEND_URL } from "../../lib/config";
-
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
 
-  const [wallet, setWallet] = useState("");
   const [admin, setAdmin] = useState<{ name: string; wallet: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Helper to check if a link is active
   const isActive = (path: string) => pathname === path;
 
   const navItems = [
@@ -40,8 +31,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Staking", href: "/admin/dashboard/staking", icon: Coins },
     { name: "My Earning", href: "/admin/dashboard/myincom", icon: Coins },
     { name: "Token Send", href: "/admin/dashboard/token", icon: HandCoins },
-
   ];
+
   useEffect(() => {
     async function initAdmin() {
       if (!window.ethereum) {
@@ -59,27 +50,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
 
         const address = accounts[0].toLowerCase();
-        setWallet(address);
 
         const res = await fetch(`${BACKEND_URL}/user/${address}`);
-
         if (!res.ok) {
           router.replace("/");
           return;
         }
 
         const data = await res.json();
-        console.log("Admin data:", data);
-        // ❌ Not admin → kick to user dashboard
-      if (!data || data.role !== "ADMIN") {
+
+        if (data.role !== "ADMIN") {
           router.replace("/dashboard");
           return;
         }
 
-        setAdmin({
-          name: data.name,
-          wallet: data.wallet,
-        });
+        setAdmin({ name: data.name, wallet: data.wallet });
       } catch (err) {
         console.error("Admin auth failed:", err);
         router.replace("/");
@@ -100,40 +85,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F1F5F9] relative">
-      {/* Mobile Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
+    <div className="flex min-h-screen bg-[#F1F5F9]">
       {/* --- SIDEBAR --- */}
-      <aside 
-        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#0F172A] text-slate-300 flex flex-col shadow-xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Logo Section */}
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-              A
-            </div>
-            <h2 className="text-xl font-bold text-white tracking-tight">Admin Panel</h2>
+      <aside className="w-72 bg-[#0F172A] text-slate-300 flex flex-col shadow-xl">
+        {/* Logo */}
+        <div className="p-6 border-b border-slate-800 flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+            A
           </div>
-          <button 
-            onClick={() => setIsSidebarOpen(false)}
-            className="md:hidden text-slate-400 hover:text-white"
-            aria-label="Close menu"
-          >
-            <X size={24} />
-          </button>
+          <h2 className="text-xl font-bold text-white">Admin Panel</h2>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-1 mt-4">
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">
             Main Menu
           </p>
@@ -144,16 +108,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.name}
                 href={item.href}
-                onClick={() => setIsSidebarOpen(false)}
                 className={`
-                  flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group
+                  flex items-center justify-between px-3 py-2.5 rounded-lg transition-all
                   ${active
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
+                    ? "bg-blue-600 text-white shadow"
                     : "hover:bg-slate-800 hover:text-white"}
                 `}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon size={20} className={active ? "text-white" : "text-slate-400 group-hover:text-blue-400"} />
+                  <item.icon
+                    size={20}
+                    className={active ? "text-white" : "text-slate-400"}
+                  />
                   <span className="text-sm font-medium">{item.name}</span>
                 </div>
                 {active && <ChevronRight size={14} />}
@@ -162,52 +128,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        {/* Footer / User Section */}
+        {/* Logout */}
         <button
-          onClick={() => {
-            router.replace("/");
-          }}
-          className="flex items-center gap-3 w-full px-3 py-2 text-slate-400 hover:text-red-400 transition-colors text-sm font-medium"
+          onClick={() => router.replace("/")}
+          className="flex items-center gap-3 w-full px-6 py-4 text-slate-400 hover:text-red-400 text-sm font-medium border-t border-slate-800"
         >
           <LogOut size={18} />
           Logout
         </button>
-
       </aside>
 
       {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 flex flex-col min-h-screen overflow-hidden w-full">
-        {/* Top Header Bar */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
-           <div className="flex items-center gap-4">
-             {/* Mobile Menu Toggle */}
-             <button 
-               onClick={() => setIsSidebarOpen(true)}
-               className="md:hidden text-slate-500 hover:text-slate-800"
-               aria-label="Open menu"
-             >
-               <Menu size={24} />
-             </button>
-             
-             <h1 className="text-slate-800 font-semibold text-lg capitalize hidden sm:block">
-                {pathname.split("/").pop()?.replace("-", " ")}
-             </h1>
-           </div>
+      <main className="flex-1 flex flex-col min-h-screen">
+        {/* Header */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
+          <h1 className="text-slate-800 font-semibold text-lg capitalize">
+            {pathname.split("/").pop()?.replace("-", " ")}
+          </h1>
 
-           <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold text-slate-900">Admin User</p>
-                <p className="text-[10px] text-slate-500">Super Admin</p>
-              </div>
-              <div className="w-9 h-9 bg-slate-200 rounded-full border border-slate-300"></div>
-           </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-xs font-bold text-slate-900">{admin?.name}</p>
+              <p className="text-[10px] text-slate-500">Super Admin</p>
+            </div>
+            <div className="w-9 h-9 bg-slate-200 rounded-full border border-slate-300" />
+          </div>
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#F8FAFC]">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+        <div className="flex-1 overflow-y-auto p-8 bg-[#F8FAFC]">
+          <div className="max-w-7xl mx-auto">{children}</div>
         </div>
       </main>
     </div>
