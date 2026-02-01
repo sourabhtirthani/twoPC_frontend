@@ -110,7 +110,7 @@ export default function TransactionsPage() {
                     <td className="px-6 py-4 text-center font-bold text-white">
                       {tx.amount}
                       <span className="text-xs text-slate-500 ml-1">
-                        BNB
+                         {tx.currency}
                       </span>
                     </td>
 

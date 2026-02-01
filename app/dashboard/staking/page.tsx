@@ -23,7 +23,7 @@ export default function UserStaking() {
   // Modal State
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const [stakeAmountUSD, setStakeAmountUSD] = useState<string>("");
-  const USD_PER_2PC = 10; // 1 2PC = 0.10 ₹
+  const USD_PER_2PC = 0.10; // 1 2PC = 0.10 ₹
 
   useEffect(() => {
     init();

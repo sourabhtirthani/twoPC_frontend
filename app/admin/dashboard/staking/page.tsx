@@ -13,7 +13,7 @@ import {
 export default function StakingPage() {
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const USD_PER_2PC = 10;
+  const USD_PER_2PC = 0.10;
 
   const [form, setForm] = useState({
   title: "",
