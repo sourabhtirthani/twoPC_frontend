@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Network,
   Coins,
+  LogOut,
 } from "lucide-react";
 import { ethers } from "ethers";
 import { BACKEND_URL } from "../lib/config";
@@ -134,6 +135,7 @@ export default function DashboardLayout({
               </Link>
             );
           })}
+         
         </nav>
 
         {/* User Footer */}
@@ -150,6 +152,14 @@ export default function DashboardLayout({
             </div>
           </div>
         </div>
+         {/* Logout */}
+        <button
+          onClick={() => router.replace("/")}
+          className="flex items-center gap-3 w-full px-6 py-4 text-slate-400 hover:text-red-400 text-sm font-medium border-t border-slate-800"
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
       </aside>
 
       {/* --- MAIN CONTENT --- */}

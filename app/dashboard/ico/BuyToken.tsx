@@ -17,7 +17,7 @@ import {
 export default function BuyToken({ selected, onBack }: any) {
   const [tokenAmount, setTokenAmount] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"BNB" | "USDT">("BNB");
+  const [paymentMethod, setPaymentMethod] = useState<"BNB" | "USDT">("USDT");
 
   const pricePerToken = Number(selected.price || 0);
   
@@ -186,7 +186,7 @@ export default function BuyToken({ selected, onBack }: any) {
 
         {/* Payment Method Selector */}
         <div className="flex gap-4 mb-8">
-          <button
+          {/* <button
             onClick={() => setPaymentMethod("BNB")}
             className={`flex-1 py-4 rounded-2xl border-2 transition-all flex items-center justify-center gap-3 ${
               paymentMethod === "BNB" 
@@ -196,7 +196,7 @@ export default function BuyToken({ selected, onBack }: any) {
           >
             <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-xs font-bold">BNB</div>
             <span className="font-bold">BNB</span>
-          </button>
+          </button> */}
           
           <button
             onClick={() => setPaymentMethod("USDT")}

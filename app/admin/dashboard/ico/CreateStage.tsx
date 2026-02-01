@@ -150,10 +150,10 @@ export default function CreateStage({ onBack }: any) {
   update={update} 
 />
         <InputField label="Total token issues" name="totalTokens" form={form} update={update} />
-        <InputField label="Token base price (BNB)" name="price" form={form} update={update} />
-        <InputField label="Min buy (BNB)" name="minBuy" form={form} update={update} />
-        <InputField label="Max buy (BNB)" name="maxBuy" form={form} update={update} />
-        <InputField label="Hard cap (BNB)" name="hardCap" form={form} update={update} />
+        <InputField label="Token base price (USDT)" name="price" form={form} update={update} />
+        <InputField label="Min buy (USDT)" name="minBuy" form={form} update={update} />
+        <InputField label="Max buy (USDT)" name="maxBuy" form={form} update={update} />
+        <InputField label="Hard cap (USDT)" name="hardCap" form={form} update={update} />
         <InputField label="Start date" type="datetime-local" name="start"  form={form} update={update}/>
         <InputField label="End date" type="datetime-local" name="end" form={form} update={update} />
 
