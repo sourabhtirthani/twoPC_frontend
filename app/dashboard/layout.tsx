@@ -11,6 +11,8 @@ import {
   Network,
   Coins,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { ethers } from "ethers";
 import { BACKEND_URL } from "../lib/config";
@@ -25,6 +27,7 @@ export default function DashboardLayout({
 
   const [user, setUser] = useState<{ name: string; wallet: string } | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -91,18 +94,34 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-[#020617] text-white">
+      {/* --- MOBILE HEADER --- */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#050B24] border-b border-slate-800 flex items-center justify-between px-4 z-50">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <span className="text-blue-500">2PC</span> User
+        </h2>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="text-slate-300 hover:text-white"
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
       {/* --- SIDEBAR --- */}
-      <aside className="w-72 bg-[#050B24] border-r border-slate-800 flex flex-col">
-        {/* Logo */}
-        <div className="p-6">
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-72 bg-[#050B24] border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 md:static ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+      >
+        {/* Logo (Hidden on mobile since we have a header) */}
+        <div className="p-6 hidden md:block">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <span className="text-blue-500">2PC</span> User
           </h2>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-          <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest px-4 mb-4">
+        <nav className="flex-1 px-4 space-y-1 overflow-y-auto mt-16 md:mt-0">
+          <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest px-4 mb-4 pt-4 md:pt-0">
             General
           </p>
 
@@ -112,11 +131,11 @@ export default function DashboardLayout({
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center justify-between px-4 py-3.5 rounded-lg transition-all group ${
-                  isActive
-                    ? "bg-[#0B122B] text-blue-400"
-                    : "text-slate-300 hover:bg-[#0B122B] hover:text-white"
-                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center justify-between px-4 py-3.5 rounded-lg transition-all group ${isActive
+                  ? "bg-[#0B122B] text-blue-400"
+                  : "text-slate-300 hover:bg-[#0B122B] hover:text-white"
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <item.icon
@@ -135,7 +154,6 @@ export default function DashboardLayout({
               </Link>
             );
           })}
-         
         </nav>
 
         {/* User Footer */}
@@ -152,7 +170,7 @@ export default function DashboardLayout({
             </div>
           </div>
         </div>
-         {/* Logout */}
+        {/* Logout */}
         <button
           onClick={() => router.replace("/")}
           className="flex items-center gap-3 w-full px-6 py-4 text-slate-400 hover:text-red-400 text-sm font-medium border-t border-slate-800"
@@ -162,10 +180,18 @@ export default function DashboardLayout({
         </button>
       </aside>
 
+      {/* --- OVERLAY --- */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-16 border-b border-slate-800 bg-[#050B24] flex items-center justify-end px-8">
+        <header className="h-16 border-b border-slate-800 bg-[#050B24] flex items-center justify-end px-8 md:flex">
           <div className="flex items-center gap-4">
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
@@ -175,7 +201,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <section className="flex-1 overflow-y-auto bg-[#020617] p-4 md:p-8">
+        <section className="flex-1 w-full overflow-y-auto overflow-x-hidden bg-[#020617] p-4 md:p-8">
           {children}
         </section>
       </main>

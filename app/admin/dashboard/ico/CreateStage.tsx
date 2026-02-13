@@ -21,8 +21,8 @@ export default function CreateStage({ onBack }: any) {
   const [loading, setLoading] = useState(false);
 
   const update = (key: keyof typeof form, val: string) => {
-  setForm((prev) => ({ ...prev, [key]: val }));
-};
+    setForm((prev) => ({ ...prev, [key]: val }));
+  };
 
   /* 🔐 VALIDATION */
   const validate = () => {
@@ -119,8 +119,8 @@ export default function CreateStage({ onBack }: any) {
       console.error(err);
       toast.error(
         err?.shortMessage ||
-          err?.message ||
-          "ICO creation failed",
+        err?.message ||
+        "ICO creation failed",
         { id: "create-stage" }
       );
     } finally {
@@ -142,19 +142,19 @@ export default function CreateStage({ onBack }: any) {
         </button>
       </div>
 
-      <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField 
-  label="Stage title" 
-  name="title" 
-  form={form} 
-  update={update} 
-/>
+      <div className="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InputField
+          label="Stage title"
+          name="title"
+          form={form}
+          update={update}
+        />
         <InputField label="Total token issues" name="totalTokens" form={form} update={update} />
         <InputField label="Token base price (USDT)" name="price" form={form} update={update} />
         <InputField label="Min buy (USDT)" name="minBuy" form={form} update={update} />
         <InputField label="Max buy (USDT)" name="maxBuy" form={form} update={update} />
         <InputField label="Hard cap (USDT)" name="hardCap" form={form} update={update} />
-        <InputField label="Start date" type="datetime-local" name="start"  form={form} update={update}/>
+        <InputField label="Start date" type="datetime-local" name="start" form={form} update={update} />
         <InputField label="End date" type="datetime-local" name="end" form={form} update={update} />
 
         <div className="md:col-span-2 mt-4">

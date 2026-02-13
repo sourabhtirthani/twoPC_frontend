@@ -11,6 +11,8 @@ import {
   LogOut,
   Coins,
   HandCoins,
+  Menu,
+  X,
 } from "lucide-react";
 import { ethers } from "ethers";
 import { BACKEND_URL } from "../../lib/config";
@@ -21,6 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const [admin, setAdmin] = useState<{ name: string; wallet: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => pathname === path;
 
@@ -86,10 +89,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-[#F1F5F9]">
+      {/* --- MOBILE HEADER --- */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#0F172A] border-b border-slate-800 flex items-center justify-between px-4 z-50">
+        <h2 className="text-xl font-bold text-white">Admin Panel</h2>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="text-slate-300 hover:text-white"
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
       {/* --- SIDEBAR --- */}
-      <aside className="w-72 bg-[#0F172A] text-slate-300 flex flex-col shadow-xl">
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-72 bg-[#0F172A] text-slate-300 flex flex-col shadow-xl transition-transform duration-300 ease-in-out md:translate-x-0 md:static ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+      >
         {/* Logo */}
-        <div className="p-6 border-b border-slate-800 flex items-center gap-3">
+        <div className="p-6 border-b border-slate-800 items-center gap-3 hidden md:flex">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
             A
           </div>
@@ -97,8 +114,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 mt-4">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">
+        <nav className="flex-1 p-4 space-y-1 mt-16 md:mt-4">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2 pt-4 md:pt-0">
             Main Menu
           </p>
 
@@ -108,11 +125,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
                 className={`
                   flex items-center justify-between px-3 py-2.5 rounded-lg transition-all
                   ${active
                     ? "bg-blue-600 text-white shadow"
-                    : "hover:bg-slate-800 hover:text-white"}
+                    : "hover:bg-slate-800 hover:text-white"
+                  }
                 `}
               >
                 <div className="flex items-center gap-3">
@@ -138,8 +157,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </button>
       </aside>
 
+      {/* --- OVERLAY --- */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 flex flex-col min-h-screen">
+      <main className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Header */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
           <h1 className="text-slate-800 font-semibold text-lg capitalize">

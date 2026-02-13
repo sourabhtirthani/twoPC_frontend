@@ -110,13 +110,13 @@ export default function DashboardHome() {
   // }, []);
 
   const StatCard = ({ icon: Icon, title, value, unit }: any) => (
-    <div className="bg-[#050B24] border border-slate-800 p-6 rounded-xl flex items-center gap-6 shadow-xl">
-      <div className="bg-[#0F172A] p-4 rounded-lg border border-slate-700">
-        <Icon className="text-blue-400" size={28} />
+    <div className="bg-[#050B24] border border-slate-800 p-4 md:p-6 rounded-xl flex items-center gap-4 md:gap-6 shadow-xl overflow-hidden">
+      <div className="bg-[#0F172A] p-3 md:p-4 rounded-lg border border-slate-700 shrink-0">
+        <Icon className="text-blue-400" size={24} />
       </div>
-      <div>
-        <p className="text-slate-400 text-sm font-medium mb-1">{title}</p>
-        <h2 className="text-xl md:text-2xl font-bold text-white leading-tight">
+      <div className="min-w-0">
+        <p className="text-slate-400 text-sm font-medium mb-1 truncate">{title}</p>
+        <h2 className="text-xl md:text-2xl font-bold text-white leading-tight truncate">
           {value} <span className="text-slate-300 text-lg font-semibold">{unit}</span>
         </h2>
       </div>
@@ -126,9 +126,9 @@ export default function DashboardHome() {
 
 
   return (
-    <div className="min-h-screen bg-[#020617] p-4 md:p-8 text-white space-y-8">
+    <div className="min-h-screen bg-[#020617] p-0 md:p-8 text-white space-y-8 overflow-x-hidden max-w-full">
       {/* 1. Stat Boxes Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full">
         <StatCard
           icon={PiggyBank}
           title="Total Purchased"
@@ -150,17 +150,17 @@ export default function DashboardHome() {
       </div>
 
       {/* 2. Referral Link Section */}
-      <div className="space-y-3">
+      <div className="space-y-3 w-full">
         <label className="text-lg font-semibold text-slate-200">Your referral link</label>
         <div className="flex w-full max-w-4xl bg-[#050B24] border border-slate-800 rounded-lg overflow-hidden ring-1 ring-slate-800">
           <input
             readOnly
             value={referralLink}
-            className="bg-transparent flex-1 px-4 py-3 text-slate-300 outline-none text-sm md:text-base"
+            className="bg-transparent flex-1 px-4 py-3 text-slate-300 outline-none text-sm md:text-base min-w-0"
           />
           <button
             onClick={copyToClipboard}
-            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 px-8 py-3 font-bold text-white transition-all flex items-center gap-2"
+            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 px-4 md:px-8 py-3 font-bold text-white transition-all flex items-center gap-2 whitespace-nowrap"
           >
             <Copy size={18} /> Copy
           </button>
@@ -173,15 +173,15 @@ export default function DashboardHome() {
           <h3 className="text-xl font-bold">Transaction list</h3>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-w-full">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#020617]/50 text-[#3B82F6] text-[12px] uppercase tracking-wider font-bold">
-                <th className="px-6 py-4 border-b border-slate-800">Auction Date</th>
-                <th className="px-6 py-4 border-b border-slate-800">Creator</th>
-                <th className="px-6 py-4 border-b border-slate-800 text-center">Remain Token</th>
-                <th className="px-6 py-4 border-b border-slate-800 text-center">Base Price</th>
-                <th className="px-6 py-4 border-b border-slate-800 text-right">Action</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-800 whitespace-nowrap">Auction Date</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-800 whitespace-nowrap">Creator</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-800 text-center whitespace-nowrap">Remain Token</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-800 text-center whitespace-nowrap">Base Price</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-800 text-right whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -201,27 +201,27 @@ export default function DashboardHome() {
                 transactions.map((tx) => (
                   <tr key={tx.hash} className="group hover:bg-[#0B122B]/50 transition-colors">
                     {/* Time */}
-                    <td className="px-6 py-4 text-sm text-slate-300">
+                    <td className="px-4 md:px-6 py-3 md:py-4 text-sm text-slate-300 whitespace-nowrap">
                       {dayjs.unix(tx.timeStamp).fromNow()}
                     </td>
 
                     {/* From */}
-                    <td className="px-6 py-4 font-mono text-xs text-slate-400">
+                    <td className="px-4 md:px-6 py-3 md:py-4 font-mono text-xs text-slate-400 whitespace-nowrap">
                       {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
                     </td>
 
                     {/* Amount */}
-                    <td className="px-6 py-4 text-center font-semibold">
+                    <td className="px-4 md:px-6 py-3 md:py-4 text-center font-semibold whitespace-nowrap">
                       {ethers.formatUnits(tx.value, tx.tokenDecimal)} {tx.tokenSymbol}
                     </td>
 
                     {/* Type */}
-                    <td className="px-6 py-4 text-center text-slate-400">
+                    <td className="px-4 md:px-6 py-3 md:py-4 text-center text-slate-400 whitespace-nowrap">
                       Transfer
                     </td>
 
                     {/* Action */}
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 md:px-6 py-3 md:py-4 text-right whitespace-nowrap">
                       <a
                         href={`https://testnet.bscscan.com/tx/${tx.hash}`}
                         target="_blank"

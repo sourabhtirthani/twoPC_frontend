@@ -52,11 +52,11 @@ export default function TransactionsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#020617] p-8 text-white">
-      <div className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-[#020617] p-0 md:p-8 text-white">
+      <div className="flex max-sm:flex-col max-sm:gap-4 justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Transaction Logs</h1>
 
-        <div className="flex bg-[#050B24] border border-slate-800 rounded-lg overflow-hidden w-64">
+        <div className="flex max-sm:w-full bg-[#050B24] border border-slate-800 rounded-lg overflow-hidden w-64">
           <input
             type="text"
             placeholder="Search TX Hash..."
@@ -110,7 +110,7 @@ export default function TransactionsPage() {
                     <td className="px-6 py-4 text-center font-bold text-white">
                       {tx.amount}
                       <span className="text-xs text-slate-500 ml-1">
-                         {tx.currency}
+                        {tx.currency}
                       </span>
                     </td>
 

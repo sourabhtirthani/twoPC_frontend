@@ -18,10 +18,10 @@ export default function StakingPage() {
   const USD_PER_2PC = 0.10;
 
   const [form, setForm] = useState({
-  title: "",
-  address: "",
-  amount: "",
-});
+    title: "",
+    address: "",
+    amount: "",
+  });
 
   /* ---------------- FETCH PLANS ---------------- */
   const fetchUserList = async () => {
@@ -42,11 +42,11 @@ export default function StakingPage() {
     setForm({ ...form, [key]: value });
 
   const validate = () => {
-  if (!form.title.trim()) return "Title required";
-  if (!form.address.trim()) return "Address required";
-  if (+form.amount <= 0) return "Invalid amount";
-  return null;
-};
+    if (!form.title.trim()) return "Title required";
+    if (!form.address.trim()) return "Address required";
+    if (+form.amount <= 0) return "Invalid amount";
+    return null;
+  };
 
 
   const createPlan = async () => {
@@ -76,11 +76,11 @@ export default function StakingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-        title: form.title,
-        address: form.address,
-        amount: form.amount,
-        txHash: tx.hash,
-      }),
+          title: form.title,
+          address: form.address,
+          amount: form.amount,
+          txHash: tx.hash,
+        }),
       });
 
       toast.success("Staking plan created", { id: "stake" });
@@ -95,52 +95,52 @@ export default function StakingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-10">
-      
+    <div className="min-h-screen bg-slate-50/50 p-0 md:p-8 space-y-10">
+
       {/* ================= CREATE PLAN SECTION ================= */}
-      <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-50 px-8 py-4 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-600 rounded-lg shadow-blue-200 shadow-lg">
-                    <Coins className="text-white" size={20} />
-                </div>
-                <div>
-                    <h2 className="text-lg font-bold text-slate-800 tracking-tight">Send Tokens</h2>
-                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Blockchain Deployment</p>
-                </div>
+      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-50 p-4 md:px-8 py-4 border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-600 rounded-lg shadow-blue-200 shadow-lg">
+              <Coins className="text-white" size={20} />
             </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 tracking-tight">Send Tokens</h2>
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Blockchain Deployment</p>
+            </div>
+          </div>
         </div>
 
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6">
-            <Input label="Name" placeholder="Jone doe" value={form.title} onChange={(v:any) => update("title", v)} />
-            <Input label="To Address" type="text" placeholder="0" value={form.address} onChange={(v:any) => update("address", v)} />
-            <Input label="Amount" type="number" placeholder="100" value={form.amount} onChange={(v:any) => update("amount", v)} />
-           
-            
-            
-            <div className="col-span-full pt-4 flex items-center justify-between border-t border-slate-100 mt-2">
-                <p className="text-sm text-slate-500 flex items-center gap-2 italic">
-                    <Info size={14}/> Gas fees apply for blockchain transactions
-                </p>
-                <button
+            <Input label="Name" placeholder="Jone doe" value={form.title} onChange={(v: any) => update("title", v)} />
+            <Input label="To Address" type="text" placeholder="0" value={form.address} onChange={(v: any) => update("address", v)} />
+            <Input label="Amount" type="number" placeholder="100" value={form.amount} onChange={(v: any) => update("amount", v)} />
+
+
+
+            <div className="col-span-full pt-4 flex max-sm:flex-col max-sm:gap-4 items-center justify-between border-t border-slate-100 mt-2">
+              <p className="text-sm text-slate-500 flex items-center gap-2 italic">
+                <Info size={14} /> Gas fees apply for blockchain transactions
+              </p>
+              <button
                 disabled={loading}
                 onClick={createPlan}
                 className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-10 py-3 rounded-xl flex items-center gap-2 disabled:opacity-50 transition-all shadow-lg shadow-blue-100"
-                >
+              >
                 {loading ? "Processing..." : <><Plus size={18} /> Send Tokens</>}
-                </button>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       {/* ================= PLAN LIST SECTION ================= */}
-      <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              User List  
-              <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-full">{plans.length}</span>
+            User List
+            <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-full">{plans.length}</span>
           </h3>
         </div>
 
@@ -160,10 +160,10 @@ export default function StakingPage() {
                 <tr>
                   <td colSpan={6} className="py-20 text-center">
                     <div className="flex flex-col items-center gap-2">
-                        <div className="p-3 bg-slate-50 rounded-full text-slate-300">
-                            <Coins size={32} />
-                        </div>
-                        <p className="text-slate-400 font-medium">No Users Found</p>
+                      <div className="p-3 bg-slate-50 rounded-full text-slate-300">
+                        <Coins size={32} />
+                      </div>
+                      <p className="text-slate-400 font-medium">No Users Found</p>
                     </div>
                   </td>
                 </tr>
@@ -205,11 +205,10 @@ function Input({ label, value, onChange, placeholder, type = "text" }: any) {
 function IconBtn({ children, danger }: any) {
   return (
     <button
-      className={`p-2.5 rounded-lg border transition-all active:scale-90 ${
-        danger
-          ? "bg-white border-red-100 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-sm shadow-red-50"
-          : "bg-white border-slate-200 text-slate-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 shadow-sm"
-      }`}
+      className={`p-2.5 rounded-lg border transition-all active:scale-90 ${danger
+        ? "bg-white border-red-100 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-sm shadow-red-50"
+        : "bg-white border-slate-200 text-slate-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 shadow-sm"
+        }`}
     >
       {children}
     </button>
