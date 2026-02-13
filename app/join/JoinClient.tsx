@@ -18,6 +18,18 @@ const BSC_TESTNET = {
   blockExplorerUrls: ["https://testnet.bscscan.com"],
 };
 
+const BSC_MAINNET = {
+  chainId: "0x38", // 56 in hex
+  chainName: "Binance Smart Chain",
+  rpcUrls: ["https://bsc-dataseed.binance.org"],
+  nativeCurrency: {
+    name: "BNB",
+    symbol: "BNB",
+    decimals: 18,
+  },
+  blockExplorerUrls: ["https://bscscan.com"],
+};
+
 export default function JoinClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -35,18 +47,18 @@ export default function JoinClient() {
 
   async function ensureBsc() {
     const chainId = await window.ethereum.request({ method: "eth_chainId" });
-    if (chainId === BSC_TESTNET.chainId) return;
+    if (chainId === BSC_MAINNET.chainId) return;
 
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: BSC_TESTNET.chainId }],
+        params: [{ chainId: BSC_MAINNET.chainId }],
       });
     } catch (err: any) {
       if (err.code === 4902) {
         await window.ethereum.request({
           method: "wallet_addEthereumChain",
-          params: [BSC_TESTNET],
+          params: [BSC_MAINNET],
         });
       } else {
         throw err;
